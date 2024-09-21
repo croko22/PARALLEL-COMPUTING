@@ -1,70 +1,72 @@
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <mpi.h>
+#include <stdio.h>
+#include <time.h>
 
-using namespace std;
+#define MAX 1000
 
-const int MAX = 1000; // Reducir el tamaño de las matrices
-const int NUM_RUNS = 1000;
+double A[MAX][MAX], x[MAX], y[MAX];
 
-int main(int argc, char *argv[])
+// Función para inicializar la matriz A y el vector x
+void initialize_arrays()
 {
-    MPI_Init(&argc, &argv);
-
-    double A[MAX][MAX], x[MAX], y[MAX];
-    double total_duration1 = 0, total_duration2 = 0;
-
-    // Inicializar A y x, asignar y = 0
     for (int i = 0; i < MAX; i++)
     {
-        x[i] = i * 0.01;
         for (int j = 0; j < MAX; j++)
         {
-            A[i][j] = (i + j) * 0.01;
+            A[i][j] = (double)(i + j);
+        }
+        x[i] = (double)i;
+        y[i] = 0.0;
+    }
+}
+
+// Función para reinicializar y a 0
+void reset_y()
+{
+    for (int i = 0; i < MAX; i++)
+    {
+        y[i] = 0.0;
+    }
+}
+
+int main()
+{
+    clock_t start, end;
+    double time_taken;
+
+    // Inicializar A y x
+    initialize_arrays();
+
+    // Medir el tiempo del primer par de bucles (i-j)
+    reset_y(); // Reinicializar y a 0
+    start = clock();
+
+    for (int i = 0; i < MAX; i++)
+    {
+        for (int j = 0; j < MAX; j++)
+        {
+            y[i] += A[i][j] * x[j];
         }
     }
 
-    for (int run = 0; run < NUM_RUNS; run++)
-    {
-        // Reinicializar y
-        fill(begin(y), end(y), 0);
+    end = clock();
+    time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
+    printf("Tiempo primer bucle (i-j): %f segundos\n", time_taken);
 
-        // Primer par de bucles
-        double start1 = MPI_Wtime();
+    // Medir el tiempo del segundo par de bucles (j-i)
+    reset_y(); // Reinicializar y a 0
+    start = clock();
+
+    for (int j = 0; j < MAX; j++)
+    {
         for (int i = 0; i < MAX; i++)
         {
-            for (int j = 0; j < MAX; j++)
-            {
-                y[i] += A[i][j] * x[j];
-            }
+            y[i] += A[i][j] * x[j];
         }
-        double end1 = MPI_Wtime();
-        total_duration1 += (end1 - start1);
-
-        // Reinicializar y
-        fill(begin(y), end(y), 0);
-
-        // Segundo par de bucles
-        double start2 = MPI_Wtime();
-        for (int j = 0; j < MAX; j++)
-        {
-            for (int i = 0; i < MAX; i++)
-            {
-                y[i] += A[i][j] * x[j];
-            }
-        }
-        double end2 = MPI_Wtime();
-        total_duration2 += (end2 - start2);
     }
 
-    double avg_duration1 = total_duration1 / NUM_RUNS;
-    double avg_duration2 = total_duration2 / NUM_RUNS;
+    end = clock();
+    time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
+    printf("Tiempo segundo bucle (j-i): %f segundos\n", time_taken);
 
-    // Imprimir los tiempos promedio de duración
-    cout << "Promedio de duración del primer par de bucles: " << avg_duration1 << " segundos" << endl;
-    cout << "Promedio de duración del segundo par de bucles: " << avg_duration2 << " segundos" << endl;
-
-    MPI_Finalize();
     return 0;
 }
