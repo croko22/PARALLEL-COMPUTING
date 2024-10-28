@@ -15,21 +15,20 @@ int main(int argc, char **argv)
 
     if (rank == 0)
     {
-        // Read the total number of tosses
         printf("Enter the total number of tosses: ");
         scanf("%lld", &tosses);
     }
 
-    // Broadcast the number of tosses to all processes
+    // Difundir el número de lanzamientos a todos los procesos
     MPI_Bcast(&tosses, 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
 
-    // Divide tosses among processes
+    // Dividir los lanzamientos entre los procesos
     local_tosses = tosses / size;
 
-    // Seed the random number generator uniquely for each process
+    // Sembrar el generador de números aleatorios de manera única para cada proceso
     srand(time(NULL) + rank);
 
-    // Monte Carlo simulation: Count points inside the circle
+    // Simulación de Monte Carlo: Contar puntos dentro del círculo
     for (long long int toss = 0; toss < local_tosses; toss++)
     {
         x = (double)rand() / RAND_MAX * 2.0 - 1.0;
@@ -40,14 +39,14 @@ int main(int argc, char **argv)
         }
     }
 
-    // Use MPI_Reduce to collect the sum of points inside the circle
+    // Usar MPI_Reduce para recolectar la suma de puntos dentro del círculo
     MPI_Reduce(&number_in_circle, &global_in_circle, 1, MPI_LONG_LONG_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
     if (rank == 0)
     {
-        // Estimate π
+        // Estimar π
         pi_estimate = 4.0 * (double)global_in_circle / (double)tosses;
-        printf("Estimated value of π: %f\n", pi_estimate);
+        printf("Valor estimado de π: %f\n", pi_estimate);
     }
 
     MPI_Finalize();

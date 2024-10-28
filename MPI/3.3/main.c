@@ -5,14 +5,14 @@ int main(int argc, char *argv[])
 {
     int rank, size, local_sum, global_sum;
 
-    MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Init(&argc, &argv);               // Inicializar MPI
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank); // Obtener el rango del proceso
+    MPI_Comm_size(MPI_COMM_WORLD, &size); // Obtener el tamaño del comunicador
 
-    // Initialize local_sum with the rank value
+    // Inicializar local_sum con el valor del rango
     local_sum = rank;
 
-    // Tree-structured reduction
+    // Reducción en estructura de árbol
     for (int step = 1; step < size; step *= 2)
     {
         if (rank % (2 * step) == 0)
@@ -27,13 +27,13 @@ int main(int argc, char *argv[])
         }
     }
 
-    // The root process (rank 0) has the final global sum
+    // El proceso raíz (rango 0) tiene la suma global final
     global_sum = local_sum;
     if (rank == 0)
     {
-        printf("Global sum: %d\n", global_sum);
+        printf("Suma global: %d\n", global_sum);
     }
 
-    MPI_Finalize();
+    MPI_Finalize(); // Finalizar MPI
     return 0;
 }

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <mpi.h>
 
+// Función para fusionar dos arreglos ordenados en uno solo
 void merge(int *array1, int size1, int *array2, int size2, int *merged)
 {
     int i = 0, j = 0, k = 0;
@@ -22,6 +23,7 @@ void merge(int *array1, int size1, int *array2, int size2, int *merged)
         merged[k++] = array2[j++];
 }
 
+// Función de ordenamiento por fusión
 void merge_sort(int *array, int size)
 {
     if (size < 2)
@@ -39,29 +41,29 @@ void merge_sort(int *array, int size)
 int main(int argc, char **argv)
 {
     int rank, comm_sz, n;
-    MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+    MPI_Init(&argc, &argv);                  // Inicializar MPI
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);    // Obtener el rango del proceso
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_sz); // Obtener el tamaño del comunicador
 
     if (rank == 0)
     {
         printf("Enter the number of integers (n): ");
-        scanf("%d", &n);
+        scanf("%d", &n); // Leer el número de enteros
     }
-    MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD); // Difundir el valor de n a todos los procesos
 
     int local_n = n / comm_sz;
     int *local_array = (int *)malloc(local_n * sizeof(int));
-    // Generate random integers
+    // Generar enteros aleatorios
     for (int i = 0; i < local_n; i++)
     {
-        local_array[i] = rand() % 100; // Random integers between 0 and 99
+        local_array[i] = rand() % 100; // Enteros aleatorios entre 0 y 99
     }
 
-    // Sort local array
+    // Ordenar el arreglo local
     merge_sort(local_array, local_n);
 
-    // Gather sorted lists at process 0
+    // Recolectar las listas ordenadas en el proceso 0
     int *sorted_array = NULL;
     if (rank == 0)
     {
@@ -69,7 +71,7 @@ int main(int argc, char **argv)
     }
     MPI_Gather(local_array, local_n, MPI_INT, sorted_array, local_n, MPI_INT, 0, MPI_COMM_WORLD);
 
-    // Merge all sorted arrays at process 0
+    // Fusionar todos los arreglos ordenados en el proceso 0
     if (rank == 0)
     {
         merge_sort(sorted_array, n);
@@ -83,6 +85,6 @@ int main(int argc, char **argv)
     }
 
     free(local_array);
-    MPI_Finalize();
+    MPI_Finalize(); // Finalizar MPI
     return 0;
 }
