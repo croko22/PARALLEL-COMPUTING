@@ -21,14 +21,18 @@ double estimate_pi(int num_points)
 
 int main()
 {
-    FILE *file = fopen("pi.csv", "w");
-    if (file == NULL)
+    FILE *file4 = fopen("pi_4_threads.csv", "w");
+    FILE *file8 = fopen("pi_8_threads.csv", "w");
+    FILE *file16 = fopen("pi_16_threads.csv", "w");
+    if (file4 == NULL || file8 == NULL || file16 == NULL)
     {
-        printf("Error al abrir el archivo.\n");
+        printf("Error al abrir los archivos.\n");
         return 1;
     }
 
-    fprintf(file, "num_points,threads,pi_estimate,execution_time,precision\n");
+    fprintf(file4, "num_points,threads,pi_estimate,execution_time,precision\n");
+    fprintf(file8, "num_points,threads,pi_estimate,execution_time,precision\n");
+    fprintf(file16, "num_points,threads,pi_estimate,execution_time,precision\n");
 
     int num_points_list[] = {1000, 10000, 100000, 1000000, 10000000};
     int num_experiments = sizeof(num_points_list) / sizeof(num_points_list[0]);
@@ -48,10 +52,23 @@ int main()
             double end = omp_get_wtime();
             double precision = fabs(pi - pi_real);
 
-            fprintf(file, "%d,%d,%.6f,%.6f,%.6f\n", num_points, threads[t], pi, end - start, precision);
+            if (threads[t] == 4)
+            {
+                fprintf(file4, "%d,%d,%.6f,%.6f,%.6f\n", num_points, threads[t], pi, end - start, precision);
+            }
+            else if (threads[t] == 8)
+            {
+                fprintf(file8, "%d,%d,%.6f,%.6f,%.6f\n", num_points, threads[t], pi, end - start, precision);
+            }
+            else if (threads[t] == 16)
+            {
+                fprintf(file16, "%d,%d,%.6f,%.6f,%.6f\n", num_points, threads[t], pi, end - start, precision);
+            }
         }
     }
 
-    fclose(file);
+    fclose(file4);
+    fclose(file8);
+    fclose(file16);
     return 0;
 }

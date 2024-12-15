@@ -20,29 +20,30 @@ void matrix_multiply(int **A, int **B, int **C, int N)
 
 int main()
 {
-    FILE *file = fopen("matrix_times.csv", "w"); // Archivo CSV para guardar los tiempos
-    if (file == NULL)
+    FILE *file4 = fopen("matrix_times_4_threads.csv", "w"); // Archivo CSV para 4 hilos
+    FILE *file8 = fopen("matrix_times_8_threads.csv", "w"); // Archivo CSV para 8 hilos
+    if (file4 == NULL || file8 == NULL)
     {
-        printf("Error al abrir el archivo.\n");
+        printf("Error al abrir los archivos.\n");
         return 1;
     }
 
-    fprintf(file, "N,Threads,Time\n"); // Encabezado del CSV
+    fprintf(file4, "N,Threads,Time\n"); // Encabezado del CSV para 4 hilos
+    fprintf(file8, "N,Threads,Time\n"); // Encabezado del CSV para 8 hilos
 
-    int sizes[] = {256, 512, 1024, 2048, 4096};
-    // , 2048, 4096, 6144, 8192, 10240, 12288
+    int sizes[] = {256, 512, 1024, 2048, 4096}; // Tamaños de matriz a probar
     int num_sizes = sizeof(sizes) / sizeof(sizes[0]);
     int threads[] = {4, 8}; // Número de hilos a probar
     int num_threads = sizeof(threads) / sizeof(threads[0]);
 
     for (int t = 0; t < num_threads; t++)
     {
-        printf("Threads = %d\n", threads[t]);
         omp_set_num_threads(threads[t]);
+        printf("Threads: %d\n", threads[t]);
         for (int s = 0; s < num_sizes; s++)
         {
+            printf("Size: %d\n", sizes[s]);
             int N = sizes[s];
-            printf("N = %d\n", N);
             int **A = malloc(N * sizeof(int *));
             int **B = malloc(N * sizeof(int *));
             int **C = malloc(N * sizeof(int *));
@@ -63,7 +64,14 @@ int main()
             double end = omp_get_wtime();
             double time_taken = end - start;
 
-            fprintf(file, "%d,%d,%f\n", N, threads[t], time_taken);
+            if (threads[t] == 4)
+            {
+                fprintf(file4, "%d,%d,%f\n", N, threads[t], time_taken);
+            }
+            else if (threads[t] == 8)
+            {
+                fprintf(file8, "%d,%d,%f\n", N, threads[t], time_taken);
+            }
 
             for (int i = 0; i < N; i++)
             {
@@ -77,6 +85,7 @@ int main()
         }
     }
 
-    fclose(file);
+    fclose(file4);
+    fclose(file8);
     return 0;
 }
